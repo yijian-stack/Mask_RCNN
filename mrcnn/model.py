@@ -31,6 +31,39 @@ assert LooseVersion(tf.__version__) >= LooseVersion("1.3")
 assert LooseVersion(keras.__version__) >= LooseVersion('2.0.8')
 
 
+from keras.applications import DenseNet121
+
+from keras.applications.densenet import DenseNet121
+
+def densenet_graph(input_image, architecture="densenet121", stage5=False):
+    """Build a DenseNet121 graph.
+        architecture: Can be densenet121
+        stage5: Boolean. If False, stage5 of the network is not created
+    """
+    # Stage 1: Conv2d_bn x2 -> MaxPooling2D
+    # Stage 2-4: Dense Blocks + Transition Layers
+    # Stage 5: Dense Block (No transition layer)
+    # Note: You will need to get the outputs from the dense blocks for the FPN. 
+    #       DenseNet121 structure: 6 blocks (conv_block + 4 dense blocks + conv_block)
+    
+    # Load pre-trained DenseNet121
+    base_model = DenseNet121(include_top=False, input_tensor=input_image)
+    
+    if architecture == "densenet121":
+        C1 = base_model.get_layer("pool1").output  # 56x56
+        C2 = base_model.get_layer("pool2_pool").output  # 28x28
+        C3 = base_model.get_layer("pool3_pool").output  # 14x14
+        C4 = base_model.get_layer("pool4_pool").output  # 7x7
+        C5 = base_model.output if stage5 else None  # 7x7 if stage5 is True
+    else:
+        raise NotImplementedError("Architecture '{}' is not implemented.".format(architecture))
+    
+    return [C1, C2, C3, C4, C5]
+
+# Replace the resnet_graph call in the Mask
+
+
+
 ############################################################
 #  Utility Functions
 ############################################################
